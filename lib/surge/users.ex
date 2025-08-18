@@ -27,7 +27,9 @@ defmodule Surge.Users do
   def create(client \\ Client.default_client(), account_id, params)
 
   def create(%Client{} = client, account_id, params) do
-    case Client.request(client, :post, "/accounts/#{account_id}/users", json: params) do
+    opts = [json: params, path_params: [account_id: account_id]]
+
+    case Client.request(client, :post, "/accounts/:account_id/users", opts) do
       {:ok, data} -> {:ok, User.from_json(data)}
       error -> error
     end
@@ -51,7 +53,9 @@ defmodule Surge.Users do
   def create_token(client \\ Client.default_client(), user_id, params)
 
   def create_token(%Client{} = client, user_id, params) do
-    case Client.request(client, :post, "/users/#{user_id}/tokens", json: params) do
+    opts = [json: params, path_params: [user_id: user_id]]
+
+    case Client.request(client, :post, "/users/:user_id/tokens", opts) do
       {:ok, response_body} -> {:ok, response_body["token"]}
       error -> error
     end
@@ -75,7 +79,7 @@ defmodule Surge.Users do
   def get(client \\ Client.default_client(), user_id)
 
   def get(%Client{} = client, user_id) do
-    case Client.request(client, :get, "/users/#{user_id}") do
+    case Client.request(client, :get, "/users/:user_id", path_params: [user_id: user_id]) do
       {:ok, data} -> {:ok, User.from_json(data)}
       error -> error
     end
@@ -99,7 +103,9 @@ defmodule Surge.Users do
   def update(client \\ Client.default_client(), user_id, params)
 
   def update(%Client{} = client, user_id, params) do
-    case Client.request(client, :patch, "/users/#{user_id}", json: params) do
+    opts = [json: params, path_params: [user_id: user_id]]
+
+    case Client.request(client, :patch, "/users/:user_id", opts) do
       {:ok, data} -> {:ok, User.from_json(data)}
       error -> error
     end

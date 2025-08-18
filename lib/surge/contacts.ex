@@ -32,7 +32,9 @@ defmodule Surge.Contacts do
   def create(client \\ Client.default_client(), account_id, params)
 
   def create(%Client{} = client, account_id, params) do
-    case Client.request(client, :post, "/accounts/#{account_id}/contacts", json: params) do
+    opts = [json: params, path_params: [account_id: account_id]]
+
+    case Client.request(client, :post, "/accounts/:account_id/contacts", opts) do
       {:ok, data} -> {:ok, Contact.from_json(data)}
       error -> error
     end
@@ -56,7 +58,9 @@ defmodule Surge.Contacts do
   def get(client \\ Client.default_client(), contact_id)
 
   def get(%Client{} = client, contact_id) do
-    case Client.request(client, :get, "/contacts/#{contact_id}") do
+    opts = [path_params: [contact_id: contact_id]]
+
+    case Client.request(client, :get, "/contacts/:contact_id", opts) do
       {:ok, data} -> {:ok, Contact.from_json(data)}
       error -> error
     end
@@ -81,7 +85,9 @@ defmodule Surge.Contacts do
   def update(client \\ Client.default_client(), contact_id, params)
 
   def update(%Client{} = client, contact_id, params) do
-    case Client.request(client, :patch, "/contacts/#{contact_id}", json: params) do
+    opts = [json: params, path_params: [contact_id: contact_id]]
+
+    case Client.request(client, :patch, "/contacts/:contact_id", opts) do
       {:ok, data} -> {:ok, Contact.from_json(data)}
       error -> error
     end

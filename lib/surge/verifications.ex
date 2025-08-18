@@ -49,7 +49,9 @@ defmodule Surge.Verifications do
   def check(client \\ Client.default_client(), verification_id, params)
 
   def check(%Client{} = client, verification_id, params) do
-    case Client.request(client, :post, "/verifications/#{verification_id}/checks", json: params) do
+    opts = [json: params, path_params: [verification_id: verification_id]]
+
+    case Client.request(client, :post, "/verifications/:verification_id/checks", opts) do
       {:ok, data} -> {:ok, VerificationCheck.from_json(data)}
       error -> error
     end

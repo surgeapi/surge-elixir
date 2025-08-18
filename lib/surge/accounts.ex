@@ -52,8 +52,9 @@ defmodule Surge.Accounts do
 
   def get_status(%Client{} = client, account_id, capabilities) do
     params = Enum.join(capabilities, ",")
+    opts = [params: params, path_params: [account_id: account_id]]
 
-    case Client.request(client, :get, "/accounts/#{account_id}/status", params: params) do
+    case Client.request(client, :get, "/accounts/:account_id/status", opts) do
       {:ok, data} -> {:ok, AccountStatus.from_json(data)}
       error -> error
     end
@@ -77,7 +78,9 @@ defmodule Surge.Accounts do
   def update(client \\ Client.default_client(), account_id, params)
 
   def update(%Client{} = client, account_id, params) do
-    case Client.request(client, :patch, "/accounts/#{account_id}", json: params) do
+    opts = [json: params, path_params: [account_id: account_id]]
+
+    case Client.request(client, :patch, "/accounts/:account_id", opts) do
       {:ok, data} -> {:ok, Account.from_json(data)}
       error -> error
     end

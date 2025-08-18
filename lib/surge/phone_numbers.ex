@@ -28,7 +28,9 @@ defmodule Surge.PhoneNumbers do
   def purchase(client \\ Client.default_client(), account_id, params)
 
   def purchase(%Client{} = client, account_id, params) do
-    case Client.request(client, :post, "/accounts/#{account_id}/phone_numbers", json: params) do
+    opts = [json: params, path_params: [account_id: account_id]]
+
+    case Client.request(client, :post, "/accounts/:account_id/phone_numbers", opts) do
       {:ok, data} -> {:ok, PhoneNumber.from_json(data)}
       error -> error
     end
