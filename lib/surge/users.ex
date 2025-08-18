@@ -11,7 +11,7 @@ defmodule Surge.Users do
 
   ## Examples
 
-      iex> Surge.Users.create("acct_123", %{
+      iex> Surge.Users.create("acc_123", %{
       ...>   email: "user@example.com",
       ...>   name: "John Doe",
       ...>   role: "admin"
@@ -19,7 +19,7 @@ defmodule Surge.Users do
       {:ok, %Surge.Users.User{}}
 
       iex> client = Surge.Client.new("your_api_key")
-      iex> Surge.Users.create(client, "acct_123", %{email: "test@example.com"})
+      iex> Surge.Users.create(client, "acc_123", %{email: "test@example.com"})
       {:ok, %Surge.Users.User{}}
   """
   @spec create(String.t(), map()) :: {:ok, User.t()} | {:error, Surge.Error.t()}
