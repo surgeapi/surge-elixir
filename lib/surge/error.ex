@@ -49,15 +49,15 @@ defmodule Surge.Error do
       %Surge.Error{type: "http_error", message: "HTTP 500 error"}
   """
   @spec from_response(integer(), map() | any()) :: t()
-  def from_response(_status, body)
-      when is_map(body) and is_map_key(body, "type") and is_map_key(body, "message") do
-    from_json(body)
+  def from_response(_status, %{"error" => error}) do
+    from_json(error)
   end
 
-  def from_response(status, _body) do
+  def from_response(status, body) do
     %__MODULE__{
       type: "http_error",
-      message: "HTTP #{status} error"
+      message: "HTTP #{status} error",
+      detail: body
     }
   end
 
@@ -69,11 +69,12 @@ defmodule Surge.Error do
       iex> Surge.Error.from_connection_error(:timeout)
       %Surge.Error{type: "connection_error", message: "Connection error: :timeout"}
   """
-  @spec from_connection_error(any()) :: t()
-  def from_connection_error(reason) do
+  @spec from_connection_error(Exception.t()) :: t()
+  def from_connection_error(error) do
     %__MODULE__{
       type: "connection_error",
-      message: "Connection error: #{inspect(reason)}"
+      message: "Connection error: #{error.__struct__.message(error)}",
+      detail: %{error: error}
     }
   end
 end
