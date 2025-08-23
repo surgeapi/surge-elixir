@@ -3,21 +3,14 @@ defmodule Surge.Messages.Message do
   A communication sent to a Contact.
   """
 
-  alias Surge.Contacts.Contact
   alias Surge.Messages.Attachment
-  alias Surge.PhoneNumbers.PhoneNumber
-
-  @type conversation :: %{
-          id: String.t(),
-          contact: Contact.t(),
-          phone_number: PhoneNumber.t()
-        }
+  alias Surge.Messages.Conversation
 
   @type t :: %__MODULE__{
           id: String.t(),
           attachments: list(Attachment.t()),
           body: String.t() | nil,
-          conversation: conversation()
+          conversation: Conversation.t()
         }
 
   defstruct [
@@ -42,7 +35,7 @@ defmodule Surge.Messages.Message do
       id: data["id"],
       attachments: parse_attachments(data["attachments"]),
       body: data["body"],
-      conversation: parse_conversation(data["conversation"])
+      conversation: Conversation.from_json(data["conversation"])
     }
   end
 
@@ -53,14 +46,5 @@ defmodule Surge.Messages.Message do
 
   defp parse_attachments(attachments) when is_list(attachments) do
     Enum.map(attachments, &Attachment.from_json/1)
-  end
-
-  @spec parse_conversation(map) :: conversation()
-  defp parse_conversation(conversation) do
-    %{
-      id: conversation["id"],
-      contact: Contact.from_json(conversation["contact"]),
-      phone_number: PhoneNumber.from_json(conversation["phone_number"])
-    }
   end
 end

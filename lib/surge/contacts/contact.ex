@@ -31,7 +31,9 @@ defmodule Surge.Contacts.Contact do
       %Surge.Contacts.Contact{id: "con_123", phone_number: "+15551234567"}
 
   """
-  @spec from_json(map()) :: t()
+  @spec from_json(map() | nil) :: t() | nil
+  def from_json(nil), do: nil
+
   def from_json(data) when is_map(data) do
     %__MODULE__{
       id: data["id"],

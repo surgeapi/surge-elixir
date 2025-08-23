@@ -25,8 +25,11 @@ defmodule Surge.PhoneNumbers.PhoneNumber do
       iex> data = %{"id" => "pn_123", "number" => "+15551234567", "type" => "local"}
       iex> Surge.PhoneNumbers.PhoneNumber.from_json(data)
       %Surge.PhoneNumbers.PhoneNumber{id: "pn_123", number: "+15551234567", type: :local}
+
   """
-  @spec from_json(map()) :: t()
+  @spec from_json(map() | nil) :: t() | nil
+  def from_json(nil), do: nil
+
   def from_json(data) when is_map(data) do
     %__MODULE__{
       id: data["id"],
