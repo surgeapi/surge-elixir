@@ -43,7 +43,7 @@ defmodule Surge.Client do
 
   Configure the client in your `config/config.exs`:
 
-      config :surge,
+      config :surge_api,
         api_key: System.get_env("SURGE_API_KEY"),
         base_url: System.get_env("SURGE_API_URL", "https://api.surge.app")
 
@@ -56,11 +56,11 @@ defmodule Surge.Client do
   @spec default_client() :: t()
   def default_client do
     api_key =
-      Application.get_env(:surge, :api_key) ||
-        raise "Surge API key not configured. Set :surge, :api_key in your config."
+      Application.get_env(:surge_api, :api_key) ||
+        raise "Surge API key not configured. Set :surge_api, :api_key in your config."
 
-    base_url = Application.get_env(:surge, :base_url, @default_base_url)
-    req_options = Application.get_env(:surge, :req_options, [])
+    base_url = Application.get_env(:surge_api, :base_url, @default_base_url)
+    req_options = Application.get_env(:surge_api, :req_options, [])
 
     new(api_key, base_url: base_url, req_options: req_options)
   end
@@ -81,7 +81,7 @@ defmodule Surge.Client do
           {:ok, map()} | {:error, Error.t()}
   def request(client, method, path, opts \\ []) do
     url = client.base_url <> path
-    user_agent = "surge-elixir/#{Application.spec(:surge, :vsn)}"
+    user_agent = "surge-elixir/#{Application.spec(:surge_api, :vsn)}"
 
     req_opts =
       Keyword.merge(client.req_options, opts)

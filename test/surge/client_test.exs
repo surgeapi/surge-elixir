@@ -369,7 +369,7 @@ defmodule Surge.ClientTest do
         [user_agent] = Plug.Conn.get_req_header(conn, "user-agent")
 
         # Get the actual version from mix.exs
-        vsn = Application.spec(:surge, :vsn) |> to_string()
+        vsn = Application.spec(:surge_api, :vsn) |> to_string()
         assert user_agent == "surge-elixir/#{vsn}"
 
         conn

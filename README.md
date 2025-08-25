@@ -28,7 +28,7 @@ Configure your Surge API credentials in your application configuration:
 
 ```elixir
 # config/config.exs
-config :surge,
+config :surge_api,
   api_key: System.get_env("SURGE_API_KEY"),
   base_url: System.get_env("SURGE_API_URL", "https://api.surge.app")
 ```
