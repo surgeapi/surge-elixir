@@ -8,6 +8,8 @@ defmodule Surge.MixProject do
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
+      source_url: "https://github.com/surgeapi/surge-elixir",
+      homepage_url: "https://surge.app",
       deps: deps(),
       description: "Elixir client SDK for the Surge API",
       package: package(),
@@ -42,7 +44,11 @@ defmodule Surge.MixProject do
   defp package do
     [
       licenses: ["MIT"],
-      links: %{"GitHub" => "https://github.com/surge_api/surge-elixir"},
+      links: %{
+        "Surge" => "https://surge.app",
+        "GitHub" => "https://github.com/surgeapi/surge-elixir",
+        "Docs" => "https://hexdocs.pm/surge_api"
+      },
       maintainers: ["Dennis Beatty"]
     ]
   end
