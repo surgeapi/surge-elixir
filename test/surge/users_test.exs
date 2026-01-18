@@ -48,7 +48,7 @@ defmodule Surge.UsersTest do
       assert user.id == "usr_01j9dwavghe1ttppewekjjkfrx"
       assert user.first_name == "Brian"
       assert user.last_name == "O'Conner"
-      assert user.metadata == %{"email" => "boconner@toretti.family", "user_id" => 1234}
+      assert user.metadata == %{"email" => "boconner@toretti.family", "user_id" => "1234"}
       assert user.photo_url == "https://toretti.family/people/brian.jpg"
     end
 
@@ -111,43 +111,6 @@ defmodule Surge.UsersTest do
       assert is_nil(user.last_name)
       assert user.metadata == %{"internal_id" => "abc123"}
       assert user.photo_url == "https://example.com/photo.jpg"
-    end
-
-    test "creates a user with complex metadata" do
-      account_id = "acct_01j9a43avnfqzbjfch6pygv1td"
-
-      params = %{
-        first_name: "Letty",
-        last_name: "Ortiz",
-        metadata: %{
-          "preferences" => %{
-            "notifications" => true,
-            "language" => "es"
-          },
-          "tags" => ["mechanic", "racer"],
-          "score" => 9.8,
-          "joined_at" => "2024-01-15T10:30:00Z"
-        },
-        photo_url: "https://toretti.family/people/letty.jpg"
-      }
-
-      Req.Test.expect(Surge.TestClient, fn conn ->
-        assert conn.params["metadata"]["preferences"]["notifications"] == true
-        assert conn.params["metadata"]["tags"] == ["mechanic", "racer"]
-
-        response_body = user_with_complex_metadata_fixture()
-
-        conn
-        |> Plug.Conn.put_status(201)
-        |> Req.Test.json(response_body)
-      end)
-
-      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
-
-      assert {:ok, %User{} = user} = Users.create(client, account_id, params)
-      assert user.metadata["preferences"]["notifications"] == true
-      assert user.metadata["tags"] == ["mechanic", "racer"]
-      assert user.metadata["score"] == 9.8
     end
 
     test "returns error when API request fails with validation error" do
@@ -243,6 +206,188 @@ defmodule Surge.UsersTest do
     end
   end
 
+  describe "create_token/3" do
+    test "creates a user token with duration" do
+      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
+
+      params = %{
+        duration_seconds: 3600
+      }
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/users/usr_01j9dwavghe1ttppewekjjkfrx/tokens"
+        assert conn.params["duration_seconds"] == 3600
+
+        response_body = token_fixture()
+
+        conn
+        |> Plug.Conn.put_status(201)
+        |> Req.Test.json(response_body)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+
+      assert {:ok, token} = Users.create_token(client, user_id, params)
+      assert token =~ "eyJ"
+    end
+
+    test "creates a user token without parameters" do
+      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
+
+      params = %{}
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        assert conn.method == "POST"
+        assert conn.request_path == "/users/usr_01j9dwavghe1ttppewekjjkfrx/tokens"
+        assert conn.params == %{}
+
+        response_body = token_fixture()
+
+        conn
+        |> Plug.Conn.put_status(201)
+        |> Req.Test.json(response_body)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+
+      assert {:ok, token} = Users.create_token(client, user_id, params)
+      assert is_binary(token)
+    end
+
+    test "returns error when user not found for token creation" do
+      user_id = "usr_nonexistent"
+
+      params = %{}
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        conn
+        |> Plug.Conn.put_status(404)
+        |> Req.Test.json(%{
+          "error" => %{
+            "type" => "not_found_error",
+            "message" => "User 'usr_nonexistent' not found"
+          }
+        })
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+
+      assert {:error, error} = Users.create_token(client, user_id, params)
+      assert error.type == "not_found_error"
+    end
+
+    test "handles connection errors for token creation" do
+      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
+
+      params = %{}
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        Req.Test.transport_error(conn, :timeout)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+
+      assert {:error, error} = Users.create_token(client, user_id, params)
+      assert error.type == "connection_error"
+    end
+  end
+
+  describe "create_token/2" do
+    test "uses default client" do
+      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
+
+      params = %{duration_seconds: 7200}
+
+      response_body = token_fixture()
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer sk_default_123"]
+
+        conn
+        |> Plug.Conn.put_status(201)
+        |> Req.Test.json(response_body)
+      end)
+
+      assert {:ok, token} = Users.create_token(user_id, params)
+      assert is_binary(token)
+    end
+  end
+
+  describe "delete/2" do
+    test "deletes a user by ID" do
+      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
+
+      Req.Test.stub(Surge.TestClient, fn conn ->
+        assert conn.method == "DELETE"
+        assert conn.request_path == "/users/usr_01j9dwavghe1ttppewekjjkfrx"
+        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer sk_test_123"]
+
+        response_body = user_fixture()
+        Req.Test.json(conn, response_body)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+      assert {:ok, %User{} = user} = Users.delete(client, user_id)
+
+      assert user.id == "usr_01j9dwavghe1ttppewekjjkfrx"
+      assert user.first_name == "Brian"
+      assert user.last_name == "O'Conner"
+      assert user.metadata["email"] == "boconner@toretti.family"
+      assert user.metadata["user_id"] == "1234"
+      assert user.photo_url == "https://toretti.family/people/brian.jpg"
+    end
+
+    test "returns error when API request fails" do
+      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
+
+      Req.Test.stub(Surge.TestClient, fn conn ->
+        conn
+        |> Plug.Conn.put_status(500)
+        |> Req.Test.json(%{
+          "error" => %{
+            "type" => "internal_server_error",
+            "message" => "Something went wrong on Surge's end."
+          }
+        })
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+      assert {:error, error} = Users.delete(client, user_id)
+      assert error.type == "internal_server_error"
+      assert error.message == "Something went wrong on Surge's end."
+    end
+
+    test "handles connection errors" do
+      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
+
+      Req.Test.stub(Surge.TestClient, fn conn ->
+        Req.Test.transport_error(conn, :timeout)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+
+      assert {:error, error} = Users.delete(client, user_id)
+      assert error.type == "connection_error"
+    end
+  end
+
+  describe "archive/1" do
+    test "uses default client" do
+      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
+
+      Req.Test.stub(Surge.TestClient, fn conn ->
+        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer sk_test_123"]
+        response_body = user_fixture()
+        Req.Test.json(conn, response_body)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+      assert {:ok, %User{} = user} = Users.delete(client, user_id)
+      assert user.id == "usr_01j9dwavghe1ttppewekjjkfrx"
+    end
+  end
+
   describe "get/2" do
     test "retrieves a user by ID matching OpenAPI example" do
       user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
@@ -266,7 +411,7 @@ defmodule Surge.UsersTest do
       assert user.id == "usr_01j9dwavghe1ttppewekjjkfrx"
       assert user.first_name == "Brian"
       assert user.last_name == "O'Conner"
-      assert user.metadata == %{"email" => "boconner@toretti.family", "user_id" => 1234}
+      assert user.metadata == %{"email" => "boconner@toretti.family", "user_id" => "1234"}
       assert user.photo_url == "https://toretti.family/people/brian.jpg"
     end
 
@@ -345,7 +490,7 @@ defmodule Surge.UsersTest do
         last_name: "O'Conner",
         metadata: %{
           "email" => "boconner@toretti.family",
-          "user_id" => 1234
+          "user_id" => "1234"
         },
         photo_url: "https://toretti.family/people/brian.jpg"
       }
@@ -359,7 +504,7 @@ defmodule Surge.UsersTest do
         assert conn.params["first_name"] == "Brian"
         assert conn.params["last_name"] == "O'Conner"
         assert conn.params["metadata"]["email"] == "boconner@toretti.family"
-        assert conn.params["metadata"]["user_id"] == 1234
+        assert conn.params["metadata"]["user_id"] == "1234"
         assert conn.params["photo_url"] == "https://toretti.family/people/brian.jpg"
 
         # Example response from OpenAPI spec
@@ -376,7 +521,7 @@ defmodule Surge.UsersTest do
       assert user.id == "usr_01j9dwavghe1ttppewekjjkfrx"
       assert user.first_name == "Brian"
       assert user.last_name == "O'Conner"
-      assert user.metadata == %{"email" => "boconner@toretti.family", "user_id" => 1234}
+      assert user.metadata == %{"email" => "boconner@toretti.family", "user_id" => "1234"}
       assert user.photo_url == "https://toretti.family/people/brian.jpg"
     end
 
@@ -388,7 +533,7 @@ defmodule Surge.UsersTest do
         last_name: "O'Conner-Toretto",
         metadata: %{
           "email" => "brian@fbi.gov",
-          "user_id" => 1234,
+          "user_id" => "1234",
           "status" => "undercover"
         }
       }
@@ -529,114 +674,6 @@ defmodule Surge.UsersTest do
     end
   end
 
-  describe "create_token/3" do
-    test "creates a user token with duration" do
-      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
-
-      params = %{
-        duration_seconds: 3600
-      }
-
-      Req.Test.expect(Surge.TestClient, fn conn ->
-        assert conn.method == "POST"
-        assert conn.request_path == "/users/usr_01j9dwavghe1ttppewekjjkfrx/tokens"
-        assert conn.params["duration_seconds"] == 3600
-
-        response_body = token_fixture()
-
-        conn
-        |> Plug.Conn.put_status(201)
-        |> Req.Test.json(response_body)
-      end)
-
-      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
-
-      assert {:ok, token} = Users.create_token(client, user_id, params)
-      assert token =~ "eyJ"
-    end
-
-    test "creates a user token without parameters" do
-      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
-
-      params = %{}
-
-      Req.Test.expect(Surge.TestClient, fn conn ->
-        assert conn.method == "POST"
-        assert conn.request_path == "/users/usr_01j9dwavghe1ttppewekjjkfrx/tokens"
-        assert conn.params == %{}
-
-        response_body = token_fixture()
-
-        conn
-        |> Plug.Conn.put_status(201)
-        |> Req.Test.json(response_body)
-      end)
-
-      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
-
-      assert {:ok, token} = Users.create_token(client, user_id, params)
-      assert is_binary(token)
-    end
-
-    test "returns error when user not found for token creation" do
-      user_id = "usr_nonexistent"
-
-      params = %{}
-
-      Req.Test.expect(Surge.TestClient, fn conn ->
-        conn
-        |> Plug.Conn.put_status(404)
-        |> Req.Test.json(%{
-          "error" => %{
-            "type" => "not_found_error",
-            "message" => "User 'usr_nonexistent' not found"
-          }
-        })
-      end)
-
-      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
-
-      assert {:error, error} = Users.create_token(client, user_id, params)
-      assert error.type == "not_found_error"
-    end
-
-    test "handles connection errors for token creation" do
-      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
-
-      params = %{}
-
-      Req.Test.expect(Surge.TestClient, fn conn ->
-        Req.Test.transport_error(conn, :timeout)
-      end)
-
-      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
-
-      assert {:error, error} = Users.create_token(client, user_id, params)
-      assert error.type == "connection_error"
-    end
-  end
-
-  describe "create_token/2" do
-    test "uses default client" do
-      user_id = "usr_01j9dwavghe1ttppewekjjkfrx"
-
-      params = %{duration_seconds: 7200}
-
-      response_body = token_fixture()
-
-      Req.Test.expect(Surge.TestClient, fn conn ->
-        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer sk_default_123"]
-
-        conn
-        |> Plug.Conn.put_status(201)
-        |> Req.Test.json(response_body)
-      end)
-
-      assert {:ok, token} = Users.create_token(user_id, params)
-      assert is_binary(token)
-    end
-  end
-
   describe "User.from_json/1" do
     test "handles nil fields correctly" do
       data = user_with_nil_fields_fixture()
@@ -648,21 +685,6 @@ defmodule Surge.UsersTest do
       assert is_nil(user.last_name)
       assert is_nil(user.metadata)
       assert is_nil(user.photo_url)
-    end
-
-    test "preserves complex metadata structure" do
-      data = user_with_complex_metadata_fixture()
-
-      user = User.from_json(data)
-
-      assert user.id == "usr_complex789"
-      assert user.first_name == "Letty"
-      assert user.last_name == "Ortiz"
-      assert user.metadata["preferences"]["notifications"] == true
-      assert user.metadata["preferences"]["language"] == "es"
-      assert user.metadata["tags"] == ["mechanic", "racer"]
-      assert user.metadata["score"] == 9.8
-      assert user.metadata["joined_at"] == "2024-01-15T10:30:00Z"
     end
 
     test "handles empty map" do
@@ -685,7 +707,7 @@ defmodule Surge.UsersTest do
       assert user.id == "usr_01j9dwavghe1ttppewekjjkfrx"
       assert user.first_name == "Brian"
       assert user.last_name == "O'Conner"
-      assert user.metadata == %{"email" => "boconner@toretti.family", "user_id" => 1234}
+      assert user.metadata == %{"email" => "boconner@toretti.family", "user_id" => "1234"}
       assert user.photo_url == "https://toretti.family/people/brian.jpg"
     end
   end

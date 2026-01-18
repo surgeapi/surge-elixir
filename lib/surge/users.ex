@@ -7,7 +7,7 @@ defmodule Surge.Users do
   alias Surge.Users.User
 
   @doc """
-  Creates a new user.
+  Creates a new User object.
 
   ## Examples
 
@@ -37,7 +37,8 @@ defmodule Surge.Users do
   end
 
   @doc """
-  Creates a signed user token for authentication.
+  Provides a mechanism for having Surge create a signed token for embeds instead
+  of signing with your own signing key.
 
   ## Examples
 
@@ -63,7 +64,37 @@ defmodule Surge.Users do
   end
 
   @doc """
-  Gets a user by ID.
+  Deletes a user.
+
+  Once a user has been deleted, they will no longer be permitted to access any
+  of the embedded components. Attempting to access a deleted user will return a
+  404 Not Found error.
+
+  ## Examples
+
+      Surge.Users.delete("usr_01j9dwavghe1ttppewekjjkfrx")
+      #=> {:ok, %Surge.Users.User{}}
+
+      client = Surge.Client.new("your_api_key")
+      Surge.Users.delete(client, "usr_01j9dwavghe1ttppewekjjkfrx")
+      #=> {:ok, %Surge.Users.User{}}
+
+  """
+  @spec delete(String.t()) :: {:ok, User.t()} | {:error, Surge.Error.t()}
+  @spec delete(Client.t(), String.t()) :: {:ok, User.t()} | {:error, Surge.Error.t()}
+  def delete(client \\ Client.default_client(), user_id)
+
+  def delete(%Client{} = client, user_id) do
+    opts = [path_params: [id: user_id]]
+
+    case Client.request(client, :delete, "/users/:id", opts) do
+      {:ok, data} -> {:ok, User.from_json(data)}
+      error -> error
+    end
+  end
+
+  @doc """
+  Retrieves a User object.
 
   ## Examples
 
@@ -87,7 +118,7 @@ defmodule Surge.Users do
   end
 
   @doc """
-  Updates a user.
+  Updates an existing User object.
 
   ## Examples
 

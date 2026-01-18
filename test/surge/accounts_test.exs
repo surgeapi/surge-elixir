@@ -7,6 +7,88 @@ defmodule Surge.AccountsTest do
   alias Surge.AccountsFixtures
   alias Surge.Client
 
+  describe "archive/2" do
+    test "archives an account by ID" do
+      account_id = "acct_abc123"
+
+      Req.Test.stub(Surge.TestClient, fn conn ->
+        assert conn.method == "DELETE"
+        assert conn.request_path == "/accounts/acct_abc123"
+        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer sk_test_123"]
+
+        response_body =
+          AccountsFixtures.account_fixture(%{
+            "id" => "acct_abc123",
+            "name" => "Test Account"
+          })
+
+        Req.Test.json(conn, response_body)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+      assert {:ok, %Account{} = account} = Accounts.archive(client, account_id)
+
+      assert account.id == "acct_abc123"
+      assert account.name == "Test Account"
+    end
+
+    test "returns error when API request fails" do
+      account_id = "acct_abc123"
+
+      Req.Test.stub(Surge.TestClient, fn conn ->
+        conn
+        |> Plug.Conn.put_status(500)
+        |> Req.Test.json(%{
+          "error" => %{
+            "type" => "internal_server_error",
+            "message" => "Something went wrong on Surge's end."
+          }
+        })
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+      assert {:error, error} = Accounts.archive(client, account_id)
+      assert error.type == "internal_server_error"
+      assert error.message == "Something went wrong on Surge's end."
+    end
+
+    test "handles connection errors" do
+      account_id = "acct_abc123"
+
+      Req.Test.stub(Surge.TestClient, fn conn ->
+        Req.Test.transport_error(conn, :timeout)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+
+      assert {:error, error} = Accounts.archive(client, account_id)
+      assert error.type == "connection_error"
+    end
+  end
+
+  describe "archive/1" do
+    test "uses default client" do
+      account_id = "acct_abc123"
+
+      Req.Test.stub(Surge.TestClient, fn conn ->
+        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer sk_default_123"]
+
+        response_body =
+          AccountsFixtures.account_fixture(%{
+            "id" => "acct_abc123",
+            "name" => "Test Account"
+          })
+
+        Req.Test.json(conn, response_body)
+      end)
+
+      assert {:ok, %Account{} = account} = Accounts.archive(account_id)
+
+      assert account.id == "acct_abc123"
+      assert account.name == "Test Account"
+    end
+  end
+
   describe "create/2" do
     test "creates an account with valid params" do
       # Example request from OpenAPI spec

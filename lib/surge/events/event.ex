@@ -1,14 +1,18 @@
 defmodule Surge.Events.Event do
   @moduledoc """
   A wrapper for webhook events that contains the event data and metadata.
-  
+
   The Event struct includes the account ID, event type, and the parsed event data
   which varies based on the type of event.
   """
 
   alias Surge.Events.{
     CallEnded,
+    CampaignApproved,
+    ContactOptedIn,
+    ContactOptedOut,
     ConversationCreated,
+    LinkFollowed,
     MessageDelivered,
     MessageFailed,
     MessageReceived,
@@ -17,7 +21,11 @@ defmodule Surge.Events.Event do
 
   @type event_type ::
           :call_ended
+          | :campaign_approved
+          | :contact_opted_in
+          | :contact_opted_out
           | :conversation_created
+          | :link_followed
           | :message_delivered
           | :message_failed
           | :message_received
@@ -25,7 +33,11 @@ defmodule Surge.Events.Event do
 
   @type event_data ::
           CallEnded.t()
+          | CampaignApproved.t()
+          | ContactOptedIn.t()
+          | ContactOptedOut.t()
           | ConversationCreated.t()
+          | LinkFollowed.t()
           | MessageDelivered.t()
           | MessageFailed.t()
           | MessageReceived.t()
@@ -127,7 +139,11 @@ defmodule Surge.Events.Event do
   @spec parse_type(String.t() | nil) :: event_type() | nil
   defp parse_type(nil), do: nil
   defp parse_type("call.ended"), do: :call_ended
+  defp parse_type("campaign.approved"), do: :campaign_approved
+  defp parse_type("contact.opted_in"), do: :contact_opted_in
+  defp parse_type("contact.opted_out"), do: :contact_opted_out
   defp parse_type("conversation.created"), do: :conversation_created
+  defp parse_type("link.followed"), do: :link_followed
   defp parse_type("message.delivered"), do: :message_delivered
   defp parse_type("message.failed"), do: :message_failed
   defp parse_type("message.received"), do: :message_received
@@ -142,8 +158,24 @@ defmodule Surge.Events.Event do
     CallEnded.from_json(data)
   end
 
+  defp parse_data(:campaign_approved, data) when is_map(data) do
+    CampaignApproved.from_json(data)
+  end
+
+  defp parse_data(:contact_opted_in, data) when is_map(data) do
+    ContactOptedIn.from_json(data)
+  end
+
+  defp parse_data(:contact_opted_out, data) when is_map(data) do
+    ContactOptedOut.from_json(data)
+  end
+
   defp parse_data(:conversation_created, data) when is_map(data) do
     ConversationCreated.from_json(data)
+  end
+
+  defp parse_data(:link_followed, data) when is_map(data) do
+    LinkFollowed.from_json(data)
   end
 
   defp parse_data(:message_delivered, data) when is_map(data) do
@@ -164,3 +196,4 @@ defmodule Surge.Events.Event do
 
   defp parse_data(_, _), do: nil
 end
+

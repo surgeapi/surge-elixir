@@ -85,4 +85,30 @@ defmodule Surge.Messages do
       error -> error
     end
   end
+
+  @doc """
+  Retrieves a Message object.
+
+  ## Examples
+
+      Surge.Messages.get("msg_123")
+      #=> {:ok, %Surge.Messages.Message{id: "msg_123"}}
+
+      client = Surge.Client.new("your_api_key")
+      Surge.Contacts.get(client, "msg_123")
+      #=> {:ok, %Surge.Messages.Message{id: "msg_123"}}
+
+  """
+  @spec get(String.t()) :: {:ok, Message.t()} | {:error, Surge.Error.t()}
+  @spec get(Client.t(), String.t()) :: {:ok, Message.t()} | {:error, Surge.Error.t()}
+  def get(client \\ Client.default_client(), message_id)
+
+  def get(%Client{} = client, message_id) do
+    opts = [path_params: [id: message_id]]
+
+    case Client.request(client, :get, "/messages/:id", opts) do
+      {:ok, data} -> {:ok, Message.from_json(data)}
+      error -> error
+    end
+  end
 end

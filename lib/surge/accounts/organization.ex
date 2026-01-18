@@ -4,13 +4,13 @@ defmodule Surge.Accounts.Organization do
   """
 
   @type address :: %{
-          name: String.t(),
-          line1: String.t(),
-          line2: String.t(),
-          locality: String.t(),
-          region: String.t(),
-          postal_code: String.t(),
-          country: String.t()
+          name: String.t() | nil,
+          line1: String.t() | nil,
+          line2: String.t() | nil,
+          locality: String.t() | nil,
+          region: String.t() | nil,
+          postal_code: String.t() | nil,
+          country: String.t() | nil
         }
 
   @type title :: :ceo | :cfo | :director | :gm | :vp | :general_counsel | :other
@@ -115,7 +115,7 @@ defmodule Surge.Accounts.Organization do
           identifier_type: :ein | nil,
           industry: industry() | nil,
           mobile_number: String.t() | nil,
-          regions_of_operation: list(region()),
+          regions_of_operation: list(region()) | nil,
           registered_name: String.t() | nil,
           stock_exchange: stock_exchange() | nil,
           stock_symbol: String.t() | nil,

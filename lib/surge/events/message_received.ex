@@ -2,13 +2,6 @@ defmodule Surge.Events.MessageReceived do
   @moduledoc """
   The `message.received` event is delivered whenever someone sends a message to
   a Surge number you own.
-
-  ## Common Use Cases
-
-  * Trigger automated responses
-  * Update conversation analytics
-  * Send notifications to other systems
-  * Log customer interactions
   """
 
   alias Surge.Messages.Attachment
@@ -124,4 +117,3 @@ defmodule Surge.Events.MessageReceived do
   defp parse_conversation(nil), do: nil
   defp parse_conversation(data) when is_map(data), do: Conversation.from_json(data)
 end
-

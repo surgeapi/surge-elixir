@@ -2,12 +2,6 @@ defmodule Surge.Events.CallEnded do
   @moduledoc """
   The `call.ended` event is delivered whenever a call is completed between a
   Surge number you own and another phone number.
-
-  ## Common Use Cases
-
-  * Display calls in a log in your system
-  * Trigger follow-up actions
-  * Update customer analytics
   """
 
   alias Surge.Contacts.Contact
@@ -107,4 +101,3 @@ defmodule Surge.Events.CallEnded do
   defp parse_status("no_answer"), do: :no_answer
   defp parse_status(_), do: nil
 end
-

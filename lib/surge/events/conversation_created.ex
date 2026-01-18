@@ -5,13 +5,6 @@ defmodule Surge.Events.ConversationCreated do
   to your Surge number or when you create a conversation, whether by sending an
   initial message to the contact or by manually creating the conversation using
   the API.
-
-  ## Common Use Cases
-
-  * Initialize conversation tracking
-  * Trigger welcome workflows
-  * Update contact management systems
-  * Start conversation analytics
   """
 
   alias Surge.Contacts.Contact
@@ -84,4 +77,3 @@ defmodule Surge.Events.ConversationCreated do
   defp parse_contact(nil), do: nil
   defp parse_contact(data) when is_map(data), do: Contact.from_json(data)
 end
-

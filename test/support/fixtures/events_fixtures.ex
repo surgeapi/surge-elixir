@@ -295,6 +295,17 @@ defmodule Surge.EventsFixtures do
     )
   end
 
+  def link_followed_fixture(attrs \\ %{}) do
+    Map.merge(
+      %{
+        "id" => "lnk_01kedctzhxexdbr5xf2bht5q84",
+        "message_id" => "msg_01jjnn7s0zfx5tdcsxjfy93et2",
+        "url" => "https://yoursite.com/something?param=true"
+      },
+      attrs
+    )
+  end
+
   def message_delivered_minimal_fixture do
     %{
       "id" => "msg_minimal123"
@@ -781,3 +792,4 @@ defmodule Surge.EventsFixtures do
     }
   end
 end
+

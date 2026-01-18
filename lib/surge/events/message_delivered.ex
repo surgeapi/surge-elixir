@@ -2,12 +2,6 @@ defmodule Surge.Events.MessageDelivered do
   @moduledoc """
   The `message.delivered` event is delivered whenever a message sent from your
   Surge number is delivered to the recipient’s device.
-
-  ## Common Use Cases
-
-  * Track delivery status of sent messages in your own system
-  * Update conversation analytics
-  * Log customer interactions
   """
 
   alias Surge.Messages.Attachment
@@ -131,4 +125,3 @@ defmodule Surge.Events.MessageDelivered do
   defp parse_conversation(nil), do: nil
   defp parse_conversation(data) when is_map(data), do: Conversation.from_json(data)
 end
-

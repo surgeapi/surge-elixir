@@ -8,6 +8,42 @@ defmodule Surge.Accounts do
   alias Surge.Client
 
   @doc """
+  Archives an account and releases all associated resources.
+
+  > #### Warning {: .warning}
+  >
+  > This action will:
+  > * Release all phone numbers associated with the account
+  > * Deactivate all campaigns
+  > * Make the account unusable for sending messages
+  >
+  > This operation is irreversible. If you need to send SMS in the future, you
+  > will need to re-register new phone numbers and campaigns.
+
+  ## Examples
+
+      Surge.Accounts.archive("acct_01jpqjvfg9enpt7pyxd60pcmxj")
+      #=> {:ok, %Surge.Accounts.Account{}}
+
+      client = Surge.Client.new("your_api_key")
+      Surge.Accounts.archive(client, "acct_01jpqjvfg9enpt7pyxd60pcmxj")
+      #=> {:ok, %Surge.Accounts.Account{}}
+
+  """
+  @spec archive(String.t()) :: {:ok, Account.t()} | {:error, Surge.Error.t()}
+  @spec archive(Client.t(), String.t()) :: {:ok, Account.t()} | {:error, Surge.Error.t()}
+  def archive(client \\ Client.default_client(), account_id)
+
+  def archive(%Client{} = client, account_id) do
+    opts = [path_params: [account_id: account_id]]
+
+    case Client.request(client, :delete, "/accounts/:account_id", opts) do
+      {:ok, data} -> {:ok, Account.from_json(data)}
+      error -> error
+    end
+  end
+
+  @doc """
   Creates a new Account within the calling Platform.
 
   ## Examples

@@ -2,13 +2,6 @@ defmodule Surge.Events.MessageFailed do
   @moduledoc """
   The `message.failed` event is delivered whenever a message sent from your
   Surge number fails to be delivered to the recipient’s device.
-
-  ## Common Use Cases
-
-  * Track delivery status of sent messages in your own system
-  * Update conversation analytics
-  * Log customer interactions
-  * Surface errors to users
   """
 
   alias Surge.Messages.Attachment
@@ -149,4 +142,3 @@ defmodule Surge.Events.MessageFailed do
   defp parse_failure_reason("rate_limited"), do: :rate_limited
   defp parse_failure_reason(_), do: nil
 end
-

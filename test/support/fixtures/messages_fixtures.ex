@@ -27,6 +27,9 @@ defmodule Surge.MessagesFixtures do
           "number" => "+18015552345",
           "type" => "local"
         }
+      },
+      "metadata" => %{
+        "external_id" => "12345"
       }
     })
   end
@@ -46,7 +49,8 @@ defmodule Surge.MessagesFixtures do
           "number" => "+18015559999",
           "type" => "local"
         }
-      }
+      },
+      "metadata" => nil
     })
   end
 
@@ -71,6 +75,9 @@ defmodule Surge.MessagesFixtures do
           "number" => "+18015551111",
           "type" => "toll_free"
         }
+      },
+      "metadata" => %{
+        "external_id" => "12345"
       }
     })
   end
@@ -107,6 +114,9 @@ defmodule Surge.MessagesFixtures do
           "number" => "+18015553333",
           "type" => "local"
         }
+      },
+      "metadata" => %{
+        "external_id" => "12345"
       }
     })
   end
@@ -124,7 +134,8 @@ defmodule Surge.MessagesFixtures do
         "phone_number" => %{
           "id" => "pn_nilfields"
         }
-      }
+      },
+      "metadata" => nil
     })
   end
 
@@ -143,6 +154,9 @@ defmodule Surge.MessagesFixtures do
           "number" => "+18015555555",
           "type" => "international"
         }
+      },
+      "metadata" => %{
+        "external_id" => "12345"
       }
     })
   end

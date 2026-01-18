@@ -10,7 +10,7 @@ defmodule Surge.UsersFixtures do
       "last_name" => "O'Conner",
       "metadata" => %{
         "email" => "boconner@toretti.family",
-        "user_id" => 1234
+        "user_id" => "1234"
       },
       "photo_url" => "https://toretti.family/people/brian.jpg"
     })
@@ -33,24 +33,6 @@ defmodule Surge.UsersFixtures do
     })
   end
 
-  def user_with_complex_metadata_fixture(attrs \\ %{}) do
-    Enum.into(attrs, %{
-      "id" => "usr_complex789",
-      "first_name" => "Letty",
-      "last_name" => "Ortiz",
-      "metadata" => %{
-        "preferences" => %{
-          "notifications" => true,
-          "language" => "es"
-        },
-        "tags" => ["mechanic", "racer"],
-        "score" => 9.8,
-        "joined_at" => "2024-01-15T10:30:00Z"
-      },
-      "photo_url" => "https://toretti.family/people/letty.jpg"
-    })
-  end
-
   def user_with_nil_fields_fixture(attrs \\ %{}) do
     Enum.into(attrs, %{
       "id" => "usr_nilfields",
@@ -68,7 +50,7 @@ defmodule Surge.UsersFixtures do
       "last_name" => "O'Conner-Toretto",
       "metadata" => %{
         "email" => "brian@fbi.gov",
-        "user_id" => 1234,
+        "user_id" => "1234",
         "status" => "undercover"
       },
       "photo_url" => "https://fbi.gov/agents/brian.jpg"

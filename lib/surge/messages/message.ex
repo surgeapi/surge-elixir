@@ -10,14 +10,16 @@ defmodule Surge.Messages.Message do
           id: String.t(),
           attachments: list(Attachment.t()),
           body: String.t() | nil,
-          conversation: Conversation.t()
+          conversation: Conversation.t(),
+          metadata: map() | nil
         }
 
   defstruct [
     :id,
     :attachments,
     :body,
-    :conversation
+    :conversation,
+    :metadata
   ]
 
   @doc """
@@ -35,7 +37,8 @@ defmodule Surge.Messages.Message do
       id: data["id"],
       attachments: parse_attachments(data["attachments"]),
       body: data["body"],
-      conversation: Conversation.from_json(data["conversation"])
+      conversation: Conversation.from_json(data["conversation"]),
+      metadata: data["metadata"]
     }
   end
 

@@ -316,6 +316,115 @@ defmodule Surge.MessagesTest do
     end
   end
 
+  describe "get/2" do
+    test "retrieves a message by ID matching OpenAPI example" do
+      message_id = "msg_01j9e0m1m6fc38gsv2vkfqgzz2"
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        assert conn.method == "GET"
+        assert conn.request_path == "/messages/msg_01j9e0m1m6fc38gsv2vkfqgzz2"
+        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer sk_test_123"]
+
+        # Example response from OpenAPI spec
+        response_body = message_fixture()
+
+        conn
+        |> Plug.Conn.put_status(200)
+        |> Req.Test.json(response_body)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+      assert {:ok, %Message{} = message} = Messages.get(client, message_id)
+
+      assert message.id == "msg_01j9e0m1m6fc38gsv2vkfqgzz2"
+      assert [attachment] = message.attachments
+      assert attachment.id == "att_01j9e0m1m6fc38gsv2vkfqgzz2"
+      assert attachment.type == "image"
+      assert attachment.url == "https://api.surge.app/attachments/att_01jbwyqj7rejzat7pq03r7fgmf"
+      assert message.body == "Thought you could leave without saying goodbye?"
+      assert message.conversation.id == "cnv_01j9e0dgmdfkj86c877ws0znae"
+      assert message.conversation.contact.id == "ctc_01j9dy8mdzfn3r0e8x1tbdrdrf"
+      assert message.conversation.contact.phone_number == "+18015551234"
+      assert message.conversation.contact.first_name == "Dominic"
+      assert message.conversation.contact.last_name == "Toretto"
+      assert message.conversation.phone_number.id == "pn_01jsjwe4d9fx3tpymgtg958d9w"
+      assert message.conversation.phone_number.number == "+18015552345"
+      assert message.conversation.phone_number.type == :local
+      assert message.metadata["external_id"] == "12345"
+    end
+
+    test "retrieves a minimal message" do
+      message_id = "msg_minimal123"
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        assert conn.method == "GET"
+        assert conn.request_path == "/messages/msg_minimal123"
+
+        response_body = minimal_message_fixture()
+
+        conn
+        |> Plug.Conn.put_status(200)
+        |> Req.Test.json(response_body)
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+
+      assert {:ok, %Message{} = message} = Messages.get(client, message_id)
+      assert message.id == "msg_minimal123"
+      assert message.attachments == []
+      assert message.body == "Simple message"
+      assert message.conversation.id == "cnv_minimal"
+      assert message.conversation.contact.id == "ctc_minimal"
+      assert message.conversation.contact.phone_number == "+18015555678"
+      refute message.conversation.contact.first_name
+      refute message.conversation.contact.last_name
+      assert message.conversation.phone_number.id == "pn_minimal"
+      assert message.conversation.phone_number.number == "+18015559999"
+      assert message.conversation.phone_number.type == :local
+      refute message.metadata
+    end
+
+    test "returns error when message not found" do
+      message_id = "msg_nonexistent"
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        conn
+        |> Plug.Conn.put_status(404)
+        |> Req.Test.json(%{
+          "error" => %{
+            "type" => "not_found_error",
+            "message" => "Message 'msg_nonexistent' not found"
+          }
+        })
+      end)
+
+      client = Client.new("sk_test_123", req_options: [plug: {Req.Test, Surge.TestClient}])
+
+      assert {:error, error} = Messages.get(client, message_id)
+      assert error.type == "not_found_error"
+      assert error.message == "Message 'msg_nonexistent' not found"
+    end
+  end
+
+  describe "get/1" do
+    test "uses default client" do
+      message_id = "msg_01j9e0m1m6fc38gsv2vkfqgzz2"
+
+      response_body = message_fixture()
+
+      Req.Test.expect(Surge.TestClient, fn conn ->
+        assert Plug.Conn.get_req_header(conn, "authorization") == ["Bearer sk_default_123"]
+
+        conn
+        |> Plug.Conn.put_status(200)
+        |> Req.Test.json(response_body)
+      end)
+
+      assert {:ok, %Message{} = message} = Messages.get(message_id)
+      assert message.id == "msg_01j9e0m1m6fc38gsv2vkfqgzz2"
+    end
+  end
+
   describe "Message.from_json/1" do
     test "parses complete message with all fields" do
       data = message_fixture()

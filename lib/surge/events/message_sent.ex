@@ -2,12 +2,6 @@ defmodule Surge.Events.MessageSent do
   @moduledoc """
   The `message.sent` event is delivered whenever a message is sent from your
   Surge number to another phone number.
-
-  ## Common Use Cases
-
-  * Track sent messages in your own system
-  * Update conversation analytics
-  * Log customer interactions
   """
 
   alias Surge.Messages.Attachment
@@ -131,4 +125,3 @@ defmodule Surge.Events.MessageSent do
   defp parse_conversation(nil), do: nil
   defp parse_conversation(data) when is_map(data), do: Conversation.from_json(data)
 end
-
